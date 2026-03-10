@@ -259,6 +259,9 @@ static void wg_destruct(struct net_device *dev)
 	kvfree(wg->index_hashtable);
 	kvfree(wg->peer_hashtable);
 	mutex_unlock(&wg->device_update_lock);
+	kfree(wg->advanced_security_config.i1_bytes);
+	wg->advanced_security_config.i1_bytes = NULL;
+	wg->advanced_security_config.i1_len = 0;
 
 	pr_debug("%s: Interface destroyed\n", dev->name);
 	free_netdev(dev);
@@ -591,6 +594,29 @@ int wg_device_handle_post_config(struct net_device *dev, struct amnezia_config *
 		                    MESSAGE_INITIATION_SIZE + asc->init_packet_junk_size,
 		                    MESSAGE_RESPONSE_SIZE + asc->response_packet_junk_size);
 		ret = -EINVAL;
+	}
+
+	/* Apply I1 */
+	if (asc->i1_len) {
+		if (asc->i1_len >= MESSAGE_MAX_SIZE) {
+			net_dbg_ratelimited("%s: I1 too large: %u\n", dev->name, asc->i1_len);
+			ret = -EINVAL;
+		} else {
+			kfree(wg->advanced_security_config.i1_bytes);
+			wg->advanced_security_config.i1_bytes = kmemdup(asc->i1_bytes, asc->i1_len, GFP_KERNEL);
+			wg->advanced_security_config.i1_len = asc->i1_len;
+			if (!wg->advanced_security_config.i1_bytes) {
+				wg->advanced_security_config.i1_len = 0;
+				ret = -ENOMEM;
+			} else {
+				a_sec_on = true; /* чтобы advanced_security_enabled не выключился */
+			}
+		}
+	} else {
+		/* optional: allow clearing */
+		kfree(wg->advanced_security_config.i1_bytes);
+		wg->advanced_security_config.i1_bytes = NULL;
+		wg->advanced_security_config.i1_len = 0;
 	}
 
 	wg->advanced_security_config.advanced_security_enabled = a_sec_on;

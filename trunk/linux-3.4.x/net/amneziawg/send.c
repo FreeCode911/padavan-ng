@@ -43,6 +43,17 @@ static void wg_packet_send_handshake_initiation(struct wg_peer *peer)
 			    peer->device->dev->name, peer->internal_id,
 			    &peer->endpoint.addr);
 
+	if (wg->advanced_security_config.advanced_security_enabled &&
+		wg->advanced_security_config.i1_len &&
+		wg->advanced_security_config.i1_bytes) {
+
+		get_random_bytes(&ds, 1);
+		wg_socket_send_buffer_to_peer(peer,
+		wg->advanced_security_config.i1_bytes,
+		wg->advanced_security_config.i1_len,
+		ds);
+	}
+
 	if (wg->advanced_security_config.advanced_security_enabled) {
 		junk_packet_count = wg->advanced_security_config.junk_packet_count;
 		buffer = kzalloc(wg->advanced_security_config.junk_packet_max_size, GFP_KERNEL);

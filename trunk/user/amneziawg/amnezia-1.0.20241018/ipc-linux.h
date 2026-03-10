@@ -181,6 +181,8 @@ again:
 			mnl_attr_put_u32(nlh, WGDEVICE_A_H3, dev->underload_packet_magic_header);
 		if (dev->flags & WGDEVICE_HAS_H4)
 			mnl_attr_put_u32(nlh, WGDEVICE_A_H4, dev->transport_packet_magic_header);
+		if (dev->flags & WGDEVICE_HAS_I1)
+			mnl_attr_put(nlh, WGDEVICE_A_I1, dev->i1_len, dev->i1_bytes);
 		if (dev->flags & WGDEVICE_HAS_FWMARK)
 			mnl_attr_put_u32(nlh, WGDEVICE_A_FWMARK, dev->fwmark);
 		if (dev->flags & WGDEVICE_REPLACE_PEERS)

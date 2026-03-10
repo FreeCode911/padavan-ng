@@ -2065,47 +2065,60 @@ net_iface_list_hook(int eid, webs_t wp, int argc, char **argv)
 static int
 net_update_vpnc_wg_state_hook(int eid, webs_t wp, int argc, char **argv)
 {
+#if defined(APP_WIREGUARD) || defined(APP_AMNEZIAWG)
+	const char *wg_bin = NULL;
+	int vpnc_type = nvram_get_int("vpnc_type");
+
+	if (nvram_get_int("vpnc_enable") == 0)
+		return 0;
+	if (vpnc_type == 3) {
 #if defined(APP_WIREGUARD)
-    if (nvram_get_int("vpnc_enable") == 0 || nvram_get_int("vpnc_type") != 3) {
-        return 0;
-    }
-
-    time_t timestamp = time(NULL);
-    char command[256];
-    snprintf(command, sizeof(command), "/usr/sbin/wg show '%s' latest-handshakes", IFNAME_CLIENT_WG);
-
-    FILE *fp = popen(command, "r");
-    if (!fp) {
-        return 1;
-    }
-
-    int vpnc_state_t = nvram_safe_get_int("vpnc_state_t", 0, 0, 2);
-    int wg_state = 0;  // 0 = нет соединения, 1 = активно, 2 = ошибка
-    char result[256];
-
-    if (fgets(result, sizeof(result), fp)) {
-        // Парсим вывод команды (ожидаем формат: <pubkey> <timestamp>)
-        char *token = strtok(result, " \t");
-        token = strtok(NULL, " \t\n");  // Получаем timestamp
-
-        if (token) {
-            int wg_ts = atoi(token);
-
-            if (wg_ts <= 0) {
-                wg_state = 2;  // Некорректное время
-            } else if (timestamp - wg_ts > 300) {  // 300 сек = 5 мин
-                wg_state = 0;  // Соединение устарело
-            } else {
-                wg_state = 1;  // Активное соединение
-            }
-        }
-    }
-    pclose(fp);
-
-    if (vpnc_state_t != wg_state)
-        nvram_set_int_temp("vpnc_state_t", wg_state);
+		wg_bin = "/usr/sbin/wg";
+#else
+		return 0;
 #endif
-    return 0;
+	} else if (vpnc_type == 4) {
+#if defined(APP_AMNEZIAWG)
+		wg_bin = "/usr/sbin/awg";
+#else
+		return 0;
+#endif
+	} else
+		return 0;
+
+	time_t timestamp = time(NULL);
+	char command[256];
+	snprintf(command, sizeof(command), "%s show '%s' latest-handshakes", wg_bin, IFNAME_CLIENT_WG);
+
+	FILE *fp = popen(command, "r");
+	if (!fp)
+		return 1;
+
+	int vpnc_state_t = nvram_safe_get_int("vpnc_state_t", 0, 0, 2);
+	int wg_state = 0;
+	char result[256];
+
+	if (fgets(result, sizeof(result), fp)) {
+		char *token = strtok(result, " \t");
+		token = strtok(NULL, " \t\n");
+
+		if (token) {
+			int wg_ts = atoi(token);
+
+			if (wg_ts <= 0)
+				wg_state = 2;
+			else if (timestamp - wg_ts > 300)
+				wg_state = 0;
+			else
+				wg_state = 1;
+		}
+	}
+	pclose(fp);
+
+	if (vpnc_state_t != wg_state)
+		nvram_set_int_temp("vpnc_state_t", wg_state);
+#endif
+	return 0;
 }
 
 static int
@@ -2125,6 +2138,11 @@ ej_firmware_caps_hook(int eid, webs_t wp, int argc, char **argv)
 	int found_app_wg = 1;
 #else
 	int found_app_wg = 0;
+#endif
+#if defined(APP_AMNEZIAWG)
+	int found_app_awg = 1;
+#else
+	int found_app_awg = 0;
 #endif
 #if defined(APP_MINIDLNA)
 	int found_app_dlna = 1;
@@ -2382,6 +2400,7 @@ ej_firmware_caps_hook(int eid, webs_t wp, int argc, char **argv)
 		"function found_utl_hdparm() { return %d;}\n"
 		"function found_app_ovpn() { return %d;}\n"
 		"function found_app_wg() { return %d;}\n"
+		"function found_app_awg() { return %d;}\n"
 		"function found_app_dlna() { return %d;}\n"
 		"function found_app_torr() { return %d;}\n"
 		"function found_app_aria() { return %d;}\n"
@@ -2408,6 +2427,7 @@ ej_firmware_caps_hook(int eid, webs_t wp, int argc, char **argv)
 		found_utl_hdparm,
 		found_app_ovpn,
 		found_app_wg,
+		found_app_awg,
 		found_app_dlna,
 		found_app_trmd,
 		found_app_aria,
@@ -3249,26 +3269,43 @@ apply_cgi(const char *url, webs_t wp)
 		websRedirect(wp, current_url);
 		return 0;
 	}
-#if defined(APP_WIREGUARD)
-	else if (!strcmp(value, " wg_action "))
+#if defined(APP_WIREGUARD) || defined(APP_AMNEZIAWG)
+	else if (!strcmp(value, " wg_action ") || !strcmp(value, " awg_action "))
 	{
 		if (!get_login_safe())
 			return 0;
 
 		FILE *fp;
+		const char *wg_binary = NULL;
 		char command[256];
 		char result[256];
 		char *action = websGetVar(wp, "action", "");
 		char *privkey = websGetVar(wp, "privkey", "");
 
+		if (!strcmp(value, " awg_action ")) {
+#if defined(APP_AMNEZIAWG)
+			wg_binary = "/usr/sbin/awg";
+#else
+			return 0;
+#endif
+		} else {
+#if defined(APP_WIREGUARD)
+			wg_binary = "/usr/sbin/wg";
+#elif defined(APP_AMNEZIAWG)
+			wg_binary = "/usr/sbin/awg";
+#else
+			return 0;
+#endif
+		}
+
 		if (strcmp(action, "genkey") == 0) {
-			snprintf(command, sizeof(command), "/usr/sbin/wg genkey");
+			snprintf(command, sizeof(command), "%s genkey", wg_binary);
 		} else
 		if (strcmp(action, "genpsk") == 0) {
-			snprintf(command, sizeof(command), "/usr/sbin/wg genpsk");
+			snprintf(command, sizeof(command), "%s genpsk", wg_binary);
 		} else
 		if (strcmp(action, "pubkey") == 0) {
-			snprintf(command, sizeof(command), "echo '%s' | /usr/sbin/wg pubkey", privkey);
+			snprintf(command, sizeof(command), "echo '%s' | %s pubkey", privkey, wg_binary);
 		} else
 			return 0;
 
@@ -3281,6 +3318,8 @@ apply_cgi(const char *url, webs_t wp)
 		if (*result) websWrite(wp, result);
 		return 0;
 	}
+#endif
+#if defined(APP_WIREGUARD)
 	else if (!strcmp(value, " ExportWGConf "))
 	{
 		char *common_name = websGetVar(wp, "common_name", "");

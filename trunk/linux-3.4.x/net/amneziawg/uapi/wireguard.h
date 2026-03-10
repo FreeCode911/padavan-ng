@@ -166,6 +166,7 @@ enum wgdevice_attribute {
 	WGDEVICE_A_H2,
 	WGDEVICE_A_H3,
 	WGDEVICE_A_H4,
+	WGDEVICE_A_I1,
 	__WGDEVICE_A_LAST
 };
 #define WGDEVICE_A_MAX (__WGDEVICE_A_LAST - 1)

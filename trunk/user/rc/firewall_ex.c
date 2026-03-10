@@ -723,6 +723,21 @@ get_tcp_mss_ifname_vpns(int vpns_type)
 		return "ppp+";
 }
 
+static int
+is_vpnc_wg_like_type(int vpnc_type)
+{
+#if defined (APP_WIREGUARD) && defined (APP_AMNEZIAWG)
+	return (vpnc_type == 3 || vpnc_type == 4);
+#elif defined (APP_WIREGUARD)
+	return (vpnc_type == 3);
+#elif defined (APP_AMNEZIAWG)
+	return (vpnc_type == 4);
+#else
+	(void)vpnc_type;
+	return 0;
+#endif
+}
+
 static char *
 get_tcp_mss_ifname_vpnc(int vpnc_type)
 {
@@ -735,8 +750,8 @@ get_tcp_mss_ifname_vpnc(int vpnc_type)
 		return NULL;
 	else
 #endif
-#if defined (APP_WIREGUARD)
-	if (vpnc_type == 3)
+#if defined (APP_WIREGUARD) || defined (APP_AMNEZIAWG)
+	if (is_vpnc_wg_like_type(vpnc_type))
 		return IFNAME_CLIENT_WG;
 	else
 #endif
@@ -811,8 +826,8 @@ ipt_filter_rules(char *man_if, char *wan_if, char *lan_if, char *lan_ip,
 				vpnc_if = IFNAME_CLIENT_TAP;
 		} else
 #endif
-#if defined (APP_WIREGUARD)
-		if (i_vpnc_type == 3) {
+#if defined (APP_WIREGUARD) || defined (APP_AMNEZIAWG)
+		if (is_vpnc_wg_like_type(i_vpnc_type)) {
 			vpnc_if = IFNAME_CLIENT_WG;
 		} else
 #endif
@@ -1145,8 +1160,8 @@ ipt_filter_rules(char *man_if, char *wan_if, char *lan_if, char *lan_ip,
 					fprintf(fp, "-A %s -j %s\n", dtype, IPT_CHAIN_NAME_VPN_LIST);
 				else if (i_vpns_actl == 4) {
 					fprintf(fp, "-A %s -o %s -j %s\n", dtype, wan_if, IPT_CHAIN_NAME_VPN_LIST);
-#if defined (APP_WIREGUARD)
-					if (vpnc_if && i_vpnc_type == 3) {
+#if defined (APP_WIREGUARD) || defined (APP_AMNEZIAWG)
+					if (vpnc_if && is_vpnc_wg_like_type(i_vpnc_type)) {
 						fprintf(fp, "-A %s -o %s -j %s\n", dtype, vpnc_if, IPT_CHAIN_NAME_VPN_LIST);
 					}
 #endif
@@ -1779,8 +1794,8 @@ ipt_nat_rules(char *man_if, char *man_ip,
 
 	vpnc_if = NULL;
 	if (i_vpnc_enable) {
-#if defined (APP_WIREGUARD)
-		if (i_vpnc_type == 3) {
+#if defined (APP_WIREGUARD) || defined (APP_AMNEZIAWG)
+		if (is_vpnc_wg_like_type(i_vpnc_type)) {
 			vpnc_if = IFNAME_CLIENT_WG;
 		} else
 #endif
@@ -2046,8 +2061,8 @@ ipt_nat_rules(char *man_if, char *man_ip,
 
 			/* skip DMZ for local VPN client */
 			if (i_vpnc_enable) {
-#if defined (APP_WIREGUARD)
-				if (i_vpnc_type == 3) {
+#if defined (APP_WIREGUARD) || defined (APP_AMNEZIAWG)
+				if (is_vpnc_wg_like_type(i_vpnc_type)) {
 					vpn_proto_mask |= 0x08;
 				} else
 #endif
