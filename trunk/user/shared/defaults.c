@@ -829,6 +829,8 @@ struct nvram_pair router_defaults[] = {
 	{ "vpns_wg_public", "" },
 	{ "vpns_wg_ext_addr", "" },
 	{ "vpns_wg_mtu", "1420" },
+#endif
+#if defined (APP_WIREGUARD) || defined (APP_AMNEZIAWG)
 	{ "vpnc_wg_mtu", "1420" },
 	{ "vpnc_wg_if_addr", "" },
 	{ "vpnc_wg_if_private", "" },
@@ -840,6 +842,16 @@ struct nvram_pair router_defaults[] = {
 	{ "vpnc_wg_peer_port", "51820" },
 	{ "vpnc_wg_peer_keepalive", "" },
 	{ "vpnc_wg_peer_allowedips", "" },
+	{ "vpnc_awg_jc", "" },
+	{ "vpnc_awg_jmin", "" },
+	{ "vpnc_awg_jmax", "" },
+	{ "vpnc_awg_s1", "" },
+	{ "vpnc_awg_s2", "" },
+	{ "vpnc_awg_h1", "" },
+	{ "vpnc_awg_h2", "" },
+	{ "vpnc_awg_h3", "" },
+	{ "vpnc_awg_h4", "" },
+	{ "vpnc_awg_i1", "" },
 #endif
 	{ 0, 0 }
 };

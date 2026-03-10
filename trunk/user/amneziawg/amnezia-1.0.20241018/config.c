@@ -482,6 +482,94 @@ err:
 	return false;
 }
 
+static inline int hexval(char c)
+{
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+    return -1;
+}
+
+/* Parses: "<b 0x....>" or "<b0x....>" into bytes */
+static inline bool parse_i1_tag(uint8_t **out, uint16_t *out_len, const char *value)
+{
+    const char *p = value;
+
+    if (!value || !strlen(value)) {
+	fprintf(stderr, "Unable to parse empty I1\n");
+	return false;
+    }
+
+    while (*p && char_is_space(*p)) p++;
+
+    if (strncasecmp(p, "<b", 2) != 0) {
+	fprintf(stderr, "I1 must start with '<b': `%s'\n", value);
+	return false;
+    }
+    p += 2;
+    while (*p && char_is_space(*p)) p++;
+
+    if (!(p[0] == '0' && (p[1] == 'x' || p[1] == 'X'))) {
+	fprintf(stderr, "I1 must contain 0x...: `%s'\n", value);
+	return false;
+    }
+    p += 2;
+
+    /* stop at '>' if present, otherwise until end of string */
+    const char *end = strchr(p, '>');
+    if (!end)
+	end = p + strlen(p);
+
+    /* count hex digits (ignore spaces) */
+    size_t hexlen = 0;
+    for (const char *q = p; q < end; q++) {
+	if (char_is_space(*q))
+	    continue;
+	if (hexval(*q) < 0) {
+	    fprintf(stderr, "I1 invalid hex char `%c` in `%s'\n", *q, value);
+	    return false;
+	}
+	hexlen++;
+    }
+
+    if (hexlen == 0 || (hexlen & 1)) {
+	fprintf(stderr, "I1 hex length must be even and non-zero: `%s'\n", value);
+	return false;
+    }
+
+    size_t blen = hexlen / 2;
+    if (blen > UINT16_MAX) {
+	fprintf(stderr, "I1 too large (%zu bytes)\n", blen);
+	return false;
+    }
+
+    uint8_t *buf = malloc(blen);
+    if (!buf) {
+	perror("malloc");
+	return false;
+    }
+
+    size_t bi = 0;
+    int hi = -1;
+    for (const char *q = p; q < end; q++) {
+	if (char_is_space(*q))
+	    continue;
+	int v = hexval(*q);
+	if (hi < 0)
+	    hi = v;
+	else {
+	    buf[bi++] = (uint8_t)((hi << 4) | v);
+	    hi = -1;
+	}
+    }
+
+    /* replace previous */
+    free(*out);
+    *out = buf;
+    *out_len = (uint16_t)blen;
+    return true;
+}
+
 static bool process_line(struct config_ctx *ctx, const char *line)
 {
 	const char *value;
@@ -558,6 +646,10 @@ static bool process_line(struct config_ctx *ctx, const char *line)
 			ret = parse_uint32(&ctx->device->transport_packet_magic_header, "H4", value);
 			if (ret)
 				ctx->device->flags |= WGDEVICE_HAS_H4;
+		} else if (key_match("I1")) {
+			ret = parse_i1_tag(&ctx->device->i1_bytes, &ctx->device->i1_len, value);
+			if (ret)
+				ctx->device->flags |= WGDEVICE_HAS_I1;
 		} else
 			goto error;
 	} else if (ctx->is_peer_section) {
@@ -763,6 +855,10 @@ struct wgdevice *config_read_cmd(const char *argv[], int argc)
 			device->flags |= WGDEVICE_HAS_H4;
 			argv += 2;
 			argc -= 2;
+		} else if (!strcmp(argv[0], "i1") && argc >= 2 && !peer) {
+			if (!parse_i1_tag(&device->i1_bytes, &device->i1_len, argv[1])) goto error;
+			device->flags |= WGDEVICE_HAS_I1;
+			argv += 2; argc -= 2;
 		} else if (!strcmp(argv[0], "peer") && argc >= 2) {
 			struct wgpeer *new_peer = calloc(1, sizeof(*new_peer));
 

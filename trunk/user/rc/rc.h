@@ -429,6 +429,13 @@ void stop_wireguard_client(void);
 void restart_wireguard_server(void);
 #endif
 
+#if defined (APP_AMNEZIAWG)
+/* amneziawg.c */
+int start_amneziawg_client(void);
+void stop_amneziawg_client(void);
+void restart_amneziawg_client(void);
+#endif
+
 /* net_wifi.c */
 void mlme_state_wl(int is_on);
 void mlme_state_rt(int is_on);

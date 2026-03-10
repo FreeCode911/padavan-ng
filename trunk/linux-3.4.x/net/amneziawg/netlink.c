@@ -34,7 +34,8 @@ static const struct nla_policy device_policy[WGDEVICE_A_MAX + 1] = {
 	[WGDEVICE_A_H1]			= { .type = NLA_U32 },
 	[WGDEVICE_A_H2]			= { .type = NLA_U32 },
 	[WGDEVICE_A_H3]			= { .type = NLA_U32 },
-	[WGDEVICE_A_H4]			= { .type = NLA_U32 }
+	[WGDEVICE_A_H4]			= { .type = NLA_U32 },
+	[WGDEVICE_A_I1] 		= { .type = NLA_BINARY, .len = MESSAGE_MAX_SIZE }
 };
 
 static const struct nla_policy peer_policy[WGPEER_A_MAX + 1] = {
@@ -619,6 +620,14 @@ static int wg_set_device(struct sk_buff *skb, struct genl_info *info)
 		asc->transport_packet_magic_header = nla_get_u32(info->attrs[WGDEVICE_A_H4]);
 	}
 
+	if (info->attrs[WGDEVICE_A_I1]) {
+		asc->advanced_security_enabled = true;
+		asc->i1_len = nla_len(info->attrs[WGDEVICE_A_I1]);
+		asc->i1_bytes = kmemdup(nla_data(info->attrs[WGDEVICE_A_I1]),
+					asc->i1_len, GFP_KERNEL);
+		if (!asc->i1_bytes) { ret = -ENOMEM; goto out; }
+	}
+
 	if (flags & WGDEVICE_F_REPLACE_PEERS)
 		wg_peer_remove_all(wg);
 
@@ -679,6 +688,7 @@ out:
 	rtnl_unlock();
 	dev_put(wg->dev);
 out_nodev:
+	kfree(asc->i1_bytes);
 	kfree(asc);
 	if (info->attrs[WGDEVICE_A_PRIVATE_KEY])
 		memzero_explicit(nla_data(info->attrs[WGDEVICE_A_PRIVATE_KEY]),

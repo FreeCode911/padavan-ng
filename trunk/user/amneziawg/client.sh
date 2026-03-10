@@ -122,7 +122,7 @@ parse_config() {
         mtu="$val"
         ;;
 
-      \[*|PrivateKey|PublicKey|PresharedKey|PersistentKeepalive|ListenPort|S1|S2|Jc|Jmin|Jmax|H1|H2|H3|H4)
+      \[*|PrivateKey|PublicKey|PresharedKey|PersistentKeepalive|ListenPort|S1|S2|Jc|Jmin|Jmax|H1|H2|H3|H4|I1)
         add_to_filtered_config "$line"
         ;;
 

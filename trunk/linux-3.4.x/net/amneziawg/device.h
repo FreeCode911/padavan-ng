@@ -48,6 +48,9 @@ struct amnezia_config {
 	u32 response_packet_magic_header;
 	u32 cookie_packet_magic_header;
 	u32 transport_packet_magic_header;
+	/* I1 support */
+        u16 i1_len;
+	u8 *i1_bytes; /* kmalloc'ed */
 };
 
 struct wg_device {

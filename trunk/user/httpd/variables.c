@@ -671,6 +671,8 @@
 			{"vpns_wg_public", "", NULL, EVM_RESTART_VPNSVR},
 			{"vpns_wg_ext_addr", "", NULL, EVM_BLOCK_UNSAFE},
 			{"vpns_wg_mtu", "", NULL, EVM_RESTART_VPNSVR},
+#endif
+#if defined(APP_WIREGUARD) || defined(APP_AMNEZIAWG)
 			{"vpnc_wg_mtu", "", NULL, EVM_RESTART_VPNCLI},
 			{"vpnc_wg_if_addr", "", NULL, EVM_RESTART_VPNCLI},
 			{"vpnc_wg_if_private", "", NULL, EVM_RESTART_VPNCLI},
@@ -682,6 +684,16 @@
 			{"vpnc_wg_peer_port", "", NULL, EVM_RESTART_VPNCLI},
 			{"vpnc_wg_peer_keepalive", "", NULL, EVM_RESTART_VPNCLI},
 			{"vpnc_wg_peer_allowedips", "", NULL, EVM_RESTART_VPNCLI},
+			{"vpnc_awg_jc", "", NULL, EVM_RESTART_VPNCLI},
+			{"vpnc_awg_jmin", "", NULL, EVM_RESTART_VPNCLI},
+			{"vpnc_awg_jmax", "", NULL, EVM_RESTART_VPNCLI},
+			{"vpnc_awg_s1", "", NULL, EVM_RESTART_VPNCLI},
+			{"vpnc_awg_s2", "", NULL, EVM_RESTART_VPNCLI},
+			{"vpnc_awg_h1", "", NULL, EVM_RESTART_VPNCLI},
+			{"vpnc_awg_h2", "", NULL, EVM_RESTART_VPNCLI},
+			{"vpnc_awg_h3", "", NULL, EVM_RESTART_VPNCLI},
+			{"vpnc_awg_h4", "", NULL, EVM_RESTART_VPNCLI},
+			{"vpnc_awg_i1", "", NULL, EVM_RESTART_VPNCLI},
 			{"scripts.vpnc_remote_network.list", "File", NULL, EVM_RESTART_VPNCLI},
 			{"scripts.vpnc_exclude_network.list", "File", NULL, EVM_RESTART_VPNCLI},
 #endif
