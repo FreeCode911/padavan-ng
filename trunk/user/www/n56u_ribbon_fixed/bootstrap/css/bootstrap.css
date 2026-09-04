@@ -161,12 +161,12 @@
  }
  
  a {
-   color: #1a73e8;
+   color: #7c3aed;
    text-decoration: none;
  }
  
  a:hover {
-   color: #64b5f6;
+   color: #a78bfa;
    text-decoration: underline;
  }
  
@@ -2426,7 +2426,7 @@
  .dropdown-menu .active > a:hover {
    color: #e0e0e0;
    text-decoration: none;
-   background-color: #1a73e8;
+   background-color: #7c3aed;
  }
  
  .open {
@@ -2717,16 +2717,16 @@
  .btn-primary {
    background-color: #0074cc;
    *background-color: #0055cc;
-   background-image: -ms-linear-gradient(top, #1a73e8, #0055cc);
-   background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#1a73e8), to(#0055cc));
-   background-image: -webkit-linear-gradient(top, #1a73e8, #0055cc);
-   background-image: -o-linear-gradient(top, #1a73e8, #0055cc);
-   background-image: -moz-linear-gradient(top, #1a73e8, #0055cc);
-   background-image: linear-gradient(top, #1a73e8, #0055cc);
+   background-image: -ms-linear-gradient(top, #7c3aed, #0055cc);
+   background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#7c3aed), to(#0055cc));
+   background-image: -webkit-linear-gradient(top, #7c3aed, #0055cc);
+   background-image: -o-linear-gradient(top, #7c3aed, #0055cc);
+   background-image: -moz-linear-gradient(top, #7c3aed, #0055cc);
+   background-image: linear-gradient(top, #7c3aed, #0055cc);
    background-repeat: repeat-x;
    border-color: #0055cc #0055cc #003580;
    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-   filter: progid:dximagetransform.microsoft.gradient(startColorstr='#1a73e8', endColorstr='#0055cc', GradientType=0);
+   filter: progid:dximagetransform.microsoft.gradient(startColorstr='#7c3aed', endColorstr='#0055cc', GradientType=0);
    filter: progid:dximagetransform.microsoft.gradient(enabled=false);
  }
  
@@ -3236,7 +3236,7 @@
  .nav-list > .active > a:hover {
    color: #e0e0e0;
    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
-   background-color: #1a73e8;
+   background-color: #7c3aed;
  }
  
  .nav-list [class^="icon-"] {
@@ -3328,7 +3328,7 @@
  .nav-pills > .active > a,
  .nav-pills > .active > a:hover {
    color: #e0e0e0;
-   background-color: #1a73e8;
+   background-color: #7c3aed;
  }
  
  .nav-stacked > li {
@@ -3390,14 +3390,14 @@
  .nav-tabs .dropdown-toggle .caret,
  .nav-pills .dropdown-toggle .caret {
    margin-top: 6px;
-   border-top-color: #1a73e8;
-   border-bottom-color: #1a73e8;
+   border-top-color: #7c3aed;
+   border-bottom-color: #7c3aed;
  }
  
  .nav-tabs .dropdown-toggle:hover .caret,
  .nav-pills .dropdown-toggle:hover .caret {
-   border-top-color: #64b5f6;
-   border-bottom-color: #64b5f6;
+   border-top-color: #a78bfa;
+   border-bottom-color: #a78bfa;
  }
  
  .nav-tabs .active .dropdown-toggle .caret,
@@ -4466,7 +4466,7 @@
  }
  
  a.thumbnail:hover {
-   border-color: #1a73e8;
+   border-color: #7c3aed;
    -webkit-box-shadow: 0 1px 4px rgba(0, 105, 214, 0.25);
       -moz-box-shadow: 0 1px 4px rgba(0, 105, 214, 0.25);
            box-shadow: 0 1px 4px rgba(0, 105, 214, 0.25);
